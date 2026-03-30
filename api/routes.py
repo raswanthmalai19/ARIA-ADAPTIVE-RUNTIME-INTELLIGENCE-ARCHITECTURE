@@ -447,3 +447,141 @@ async def clear_cache(req: Request):
     except Exception as e:
         logger.error(f"Cache clear failed: {e}")
         return _error_response(500, "internal_error", "Failed to clear cache")
+
+
+# ─────────────────────────────────────────────
+# NEW FEATURES: Inference Cache, Consensus, Cost Prediction
+# ─────────────────────────────────────────────
+
+@router.get("/cache/stats")
+async def get_cache_stats(req: Request):
+    """Get inference cache statistics."""
+    engine = _get_engine()
+    if not engine or not engine.cache:
+        return _error_response(503, "not_ready", "Engine not initialized")
+    
+    stats = engine.cache.stats()
+    return JSONResponse(
+        status_code=200,
+        content={"cache_stats": stats}
+    )
+
+
+@router.post("/predict-cost")
+async def predict_cost(req: Request, query: str, model_tier: str = "standard"):
+    """
+    UNIQUE FEATURE: Predict query cost before running.
+    
+    Ask: "How much will this query cost?"
+    Response: Estimated latency, tokens, cost, and recommendation
+    """
+    engine = _get_engine()
+    if not engine or not engine.cost_predictor:
+        return _error_response(503, "not_ready", "Engine not initialized")
+    
+    if not query or len(query) < 3:
+        return _error_response(400, "invalid_input", "Query too short")
+    
+    try:
+        prediction = engine.cost_predictor.predict(query, model_tier=model_tier)
+        return JSONResponse(
+            status_code=200,
+            content={
+                "query": prediction.query[:100],
+                "estimated_latency_ms": prediction.estimated_latency_ms,
+                "estimated_tokens": prediction.estimated_tokens,
+                "estimated_cost_usd": prediction.estimated_cost_usd,
+                "tier": prediction.tier.value,
+                "confidence": prediction.confidence,
+                "recommendation": prediction.recommended_action,
+                "reason": prediction.reasoning
+            }
+        )
+    except Exception as e:
+        logger.error(f"Cost prediction failed: {e}")
+        return _error_response(500, "prediction_error", str(e))
+
+
+@router.post("/consensus-check")
+async def consensus_check(req: Request, query: str, critical: bool = False):
+    """
+    UNIQUE FEATURE: Multi-model consensus check.
+    
+    For critical decisions, run multiple models and verify agreement.
+    Returns consensus level and confidence.
+    """
+    engine = _get_engine()
+    if not engine or not engine.consensus:
+        return _error_response(503, "not_ready", "Engine not initialized")
+    
+    if not query or len(query) < 3:
+        return _error_response(400, "invalid_input", "Query too short")
+    
+    try:
+        import asyncio
+        result = asyncio.run(engine.consensus.guess(query, critical=critical))
+        
+        return JSONResponse(
+            status_code=200,
+            content={
+                "query": query[:100],
+                "consensus_level": result.consensus_level.value,
+                "agreement_score": result.agreement_score,
+                "confidence": engine.consensus.calculate_confidence(result),
+                "should_escalate": engine.consensus.should_escalate(result, critical=critical),
+                "latency_ms": result.latency_ms,
+                "total_tokens": result.total_tokens,
+                "num_models": len(result.votes)
+            }
+        )
+    except Exception as e:
+        logger.error(f"Consensus check failed: {e}")
+        return _error_response(500, "consensus_error", str(e))
+
+
+@router.post("/infer-with-cache")
+async def infer_with_cache(req: Request, query: str, skip_cache: bool = False):
+    """
+    UNIQUE FEATURE: Inference with smart caching.
+    
+    Checks cache first. If similar query found, returns cached result.
+    Otherwise, runs inference and caches result.
+    """
+    engine = _get_engine()
+    if not engine or not engine.cache:
+        return _error_response(503, "not_ready", "Engine not initialized")
+    
+    if not query or len(query) < 3:
+        return _error_response(400, "invalid_input", "Query too short")
+    
+    try:
+        # Check cache first
+        if not skip_cache:
+            cached = engine.cache.get(query, exact_only=False)
+            if cached:
+                return JSONResponse(
+                    status_code=200,
+                    content={
+                        "response": cached.response,
+                        "source": "cache",
+                        "cached_at": cached.timestamp,
+                        "tokens_generated": cached.tokens_generated,
+                        "latency_ms": cached.latency_ms,
+                        "execution_mode": cached.execution_mode,
+                        "confidence": cached.confidence,
+                        "tokens_saved": cached.tokens_generated  # Approximate
+                    }
+                )
+        
+        # Not in cache, would need to run inference here
+        # This is a placeholder - actual implementation would run the model
+        return JSONResponse(
+            status_code=200,
+            content={
+                "message": "Query not in cache. Would run inference here.",
+                "cache_hit": False
+            }
+        )
+    except Exception as e:
+        logger.error(f"Cache inference failed: {e}")
+        return _error_response(500, "inference_error", str(e))

@@ -1,0 +1,41 @@
+[Unit]
+Description=ARIA - Adaptive Runtime Intelligence Architecture
+After=network.target
+
+[Service]
+Type=simple
+User=aria
+WorkingDirectory=/home/aria/aria
+
+# Python virtual environment
+Environment="PATH=/home/aria/aria/venv/bin:$PATH"
+Environment="PYTHONUNBUFFERED=1"
+
+# ARIA Configuration
+Environment="ARIA_MODEL=qwen2.5-3b"
+Environment="ARIA_EXECUTION_MODE=dynamic_layers"
+Environment="ARIA_CACHE_SIZE=1000"
+Environment="ARIA_LOG_LEVEL=info"
+
+# Start command with uvicorn
+ExecStart=/home/aria/aria/venv/bin/python -m uvicorn api.server:app \
+    --host 127.0.0.1 \
+    --port 8000 \
+    --workers 4 \
+    --access-log
+
+# Restart policy
+Restart=on-failure
+RestartSec=5
+
+# Resource limits
+MemoryLimit=8G
+CPUQuota=400%
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=aria
+
+[Install]
+WantedBy=multi-user.target

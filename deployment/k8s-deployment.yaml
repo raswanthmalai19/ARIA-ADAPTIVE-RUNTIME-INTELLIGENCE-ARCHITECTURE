@@ -1,0 +1,78 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: aria-api
+spec:
+  selector:
+    app: aria
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aria-api
+  labels:
+    app: aria
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: aria
+  template:
+    metadata:
+      labels:
+        app: aria
+    spec:
+      containers:
+      - name: aria
+        image: aria:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: ARIA_MODEL
+          value: "qwen2.5-3b"
+        - name: ARIA_EXECUTION_MODE
+          value: "dynamic_layers"
+        - name: ARIA_CACHE_SIZE
+          value: "1000"
+        resources:
+          requests:
+            memory: "4Gi"
+            cpu: "2"
+          limits:
+            memory: "8Gi"
+            cpu: "4"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        volumeMounts:
+        - name: model-cache
+          mountPath: /app/models_cache
+      volumes:
+      - name: model-cache
+        persistentVolumeClaim:
+          claimName: aria-models-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: aria-models-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi

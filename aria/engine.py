@@ -33,6 +33,9 @@ from aria.monitor.store import MetricsStore
 from aria.monitor.reporter import MetricsReporter
 from aria.guardian.validator import OutputValidator
 from aria.guardian.fallback import FallbackManager
+from aria.cache.memoizer import InferenceMemoizer
+from aria.consensus import MultiModelConsensus
+from aria.cost_predictor import CostPredictor
 
 logger = logging.getLogger("aria.engine")
 
@@ -70,6 +73,11 @@ class ARIAEngine:
         self.reporter = MetricsReporter(self.store)
         self.validator = OutputValidator(self.config)
         self.fallback = FallbackManager(self.config)
+
+        # Initialize new competitive features
+        self.cache = InferenceMemoizer(max_cache_size=1000, ttl_seconds=3600)
+        self.consensus = MultiModelConsensus()
+        self.cost_predictor = CostPredictor()
 
         # Set execution mode
         mode_map = {
