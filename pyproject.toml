@@ -1,0 +1,116 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel", "setuptools_scm>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aria-runtime"
+version = "0.2.0"
+description = "ARIA — Adaptive Runtime Intelligence Architecture. Intelligent runtime layer that adapts AI model execution to input complexity and hardware constraints."
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+authors = [
+    {name = "ARIA Contributors", email = "team@aria-ai.dev"},
+]
+maintainers = [
+    {name = "ARIA Team", email = "team@aria-ai.dev"},
+]
+keywords = [
+    "ai",
+    "llm",
+    "inference",
+    "adaptive",
+    "runtime",
+    "optimization",
+    "on-device",
+    "apple-silicon",
+    "model-routing",
+    "layer-skipping",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: MacOS",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Operating System :: MacOS :: MacOS 11",
+    "Operating System :: MacOS :: MacOS 12",
+    "Operating System :: MacOS :: MacOS 13",
+    "Operating System :: MacOS :: MacOS 14",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software :: Libraries :: Python Modules",
+]
+
+dependencies = [
+    "mlx>=0.12.0",
+    "mlx-lm>=0.14.0",
+    "psutil>=5.9.0",
+    "pydantic>=2.0.0",
+    "fastapi>=0.110.0",
+    "uvicorn>=0.27.0",
+    "click>=8.1.0",
+    "rich>=13.0.0",
+    "jinja2>=3.1.0",
+    "aiofiles>=23.0.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "httpx>=0.27.0",
+]
+
+[project.scripts]
+aria = "cli.main:cli"
+aria-runtime = "aria.aria_runtime:main"
+aria-benchmark = "benchmarks.runner:main"
+aria-server = "api.server:main"
+
+[project.urls]
+"Bug Reports" = "https://github.com/aria-ai/aria/issues"
+"Documentation" = "https://docs.aria-ai.dev"
+"Homepage" = "https://github.com/aria-ai/aria"
+"Repository" = "https://github.com/aria-ai/aria"
+"GitHub" = "https://github.com/aria-ai/aria"
+"Changelog" = "https://github.com/aria-ai/aria/releases"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["aria*", "api*", "cli*", "benchmarks*"]
+
+[tool.setuptools.package-data]
+aria = ["py.typed"]
+dashboard = ["static/**/*", "templates/**/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "-v --tb=short --strict-markers"
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+]
+
+[tool.black]
+line-length = 100
+target-version = ["py310", "py311", "py312"]
+include = '\.pyi?$'
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false

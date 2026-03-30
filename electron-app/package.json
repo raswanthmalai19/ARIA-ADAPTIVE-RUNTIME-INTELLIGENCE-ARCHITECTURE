@@ -1,0 +1,84 @@
+{
+  "name": "aria-desktop",
+  "version": "1.0.0",
+  "description": "Adaptive Runtime Intelligence Architecture - Desktop App",
+  "main": "main.js",
+  "homepage": "./",
+  "author": "ARIA Team",
+  "license": "MIT",
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "eject": "react-scripts eject",
+    "electron": "electron .",
+    "electron-dev": "concurrently \"npm start\" \"sleep 5 && electron .\"",
+    "electron-build": "npm run build && electron-builder",
+    "dist": "electron-builder",
+    "release": "electron-builder --publish=always"
+  },
+  "dependencies": {
+    "@tailwindcss/typography": "^0.5.19",
+    "axios": "^1.6.0",
+    "clsx": "^2.1.1",
+    "electron-is-dev": "^3.0.1",
+    "framer-motion": "^12.38.0",
+    "lucide-react": "^0.294.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-markdown": "^10.1.0",
+    "react-scripts": "5.0.1",
+    "react-syntax-highlighter": "^16.1.1",
+    "remark-gfm": "^4.0.1",
+    "tailwind-merge": "^3.5.0"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.16",
+    "concurrently": "^8.2.1",
+    "electron": "^27.0.0",
+    "electron-builder": "^24.6.4",
+    "electron-store": "^8.1.0",
+    "postcss": "^8.4.31",
+    "tailwindcss": "^3.3.5"
+  },
+  "build": {
+    "appId": "com.aria.desktop",
+    "productName": "ARIA",
+    "directories": {
+      "buildResources": "assets"
+    },
+    "files": [
+      "build/**/*",
+      "main.js",
+      "preload.js",
+      "package.json"
+    ],
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false,
+      "identity": null,
+      "icon": "assets/icon.icns"
+    },
+    "dmg": {
+      "sign": false
+    }
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  }
+}
