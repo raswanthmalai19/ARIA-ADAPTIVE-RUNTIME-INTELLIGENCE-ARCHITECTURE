@@ -233,13 +233,3 @@ Community contributions welcome. Areas of interest:
 ## License
 
 MIT License
-
----
-
-**Status:** Production Ready (v2.0)  
-**Last Updated:** March 2026  
-**Maintainer:** Raswanth Malai
-
----
-
-For technical questions or collaboration inquiries: raswanthmalaisamy@gmail.com
